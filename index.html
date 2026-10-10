@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="ko">
+<head>
+
+<!-- 파비콘 -->
+<link rel="icon" href="./house.ico" type="image/x-icon">
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Copy Box</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  /* =========================================================
+     공통
+     ========================================================= */
+  html, body { margin: 0; background: transparent; }
+  body { font-family: "Pretendard Variable", Pretendard, -apple-system, sans-serif; letter-spacing: -0.02em; }
+  [hidden] { display: none !important; }
+
+  /* =========================================================
+     복사 박스 (주소 뒤 #에 내용이 있을 때)
+     ========================================================= */
+  html.boxmode, html.boxmode body { height: 100%; }
+  html.boxmode body { padding: 6px 4px; box-sizing: border-box; }
+
+  .pv-hotel-box {
+    --ac: #2f5bea;
+    position: relative;
+    display: flex; flex-direction: column;
+    min-height: calc(100% - 2px);
+    box-sizing: border-box;
+    background: #fff;
+    border: 1px solid #e3e8f1;
+    border-radius: 16px;
+    box-shadow:
+      inset 0 0 0 6px rgba(255,255,255,0),
+      inset 0 0 0 7px #eef1f7,
+      0 1px 2px rgba(16,26,48,.04),
+      0 6px 16px -10px rgba(16,26,48,.22);
+    transition: transform .35s cubic-bezier(.2,.8,.2,1), border-color .25s;
+  }
+  .pv-hotel-box:hover { transform: translateY(-1px); border-color: #d3dcee; }
+  .pv-hotel-box::before {
+    content: ""; position: absolute; inset: 6px; pointer-events: none; z-index: 3;
+    --m: #c9d5f3;
+    background:
+      linear-gradient(var(--ac), var(--ac)) 0 0 / 9px 1.5px,
+      linear-gradient(var(--ac), var(--ac)) 0 0 / 1.5px 9px,
+      linear-gradient(var(--m), var(--m)) 100% 0 / 9px 1.5px,
+      linear-gradient(var(--m), var(--m)) 100% 0 / 1.5px 9px,
+      linear-gradient(var(--m), var(--m)) 0 100% / 9px 1.5px,
+      linear-gradient(var(--m), var(--m)) 0 100% / 1.5px 9px,
+      linear-gradient(var(--m), var(--m)) 100% 100% / 9px 1.5px,
+      linear-gradient(var(--m), var(--m)) 100% 100% / 1.5px 9px;
+    background-repeat: no-repeat;
+    transition: inset .35s cubic-bezier(.2,.8,.2,1);
+  }
+  .pv-hotel-box:hover::before { inset: 4px; }
+
+  .hd {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 12px 18px 11px;
+    border-bottom: 1px dashed #e3e8f1;
+    background: linear-gradient(180deg, #fff, #f7f9fd);
+    border-radius: 15px 15px 0 0;
+  }
+  .hd-l { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .badge {
+    flex: none; padding: 3px 8px;
+    font-size: 9.5px; font-weight: 800; letter-spacing: .05em; color: #101a30;
+    background: #fff; border: 1px solid #e3e8f1; border-radius: 5px;
+    box-shadow: inset 0 -2px 0 var(--ac);
+  }
+  .title {
+    font-size: 10px; font-weight: 800; letter-spacing: .16em; color: #6f7b93;
+    text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .status {
+    flex: none; display: inline-flex; align-items: center; gap: 6px;
+    font-size: 8.5px; font-weight: 700; letter-spacing: .14em; color: #2a3550;
+    background: #fff; border: 1px solid #e3e8f1; border-radius: 99px;
+    padding: 3px 9px 3px 7px;
+  }
+  .status::before {
+    content: ""; width: 5.5px; height: 5.5px; border-radius: 50%;
+    background: var(--ac); box-shadow: 0 0 5px color-mix(in srgb, var(--ac) 60%, transparent);
+  }
+
+  .bd {
+    flex: 1;
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 14px;
+    padding: 16px 18px 18px;
+    background:
+      radial-gradient(circle, color-mix(in srgb, var(--ac) 7%, transparent) 1px, transparent 1.3px) 0 0 / 12px 12px,
+      #fff;
+    border-radius: 0 0 15px 15px;
+  }
+  .hd[hidden] + .bd { border-radius: 15px; }
+  .tx {
+    flex: 1; min-width: 0;
+    font-size: 13.5px; line-height: 1.65; color: #101a30;
+    white-space: pre-wrap; word-break: break-all;
+  }
+  .tag {
+    display: inline-block; margin: 2px 0;
+    padding: 2px 8px; font-size: 10.5px; font-weight: 800; letter-spacing: .06em;
+    color: color-mix(in srgb, var(--ac) 75%, #000);
+    background: color-mix(in srgb, var(--ac) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--ac) 16%, transparent);
+    border-radius: 6px; user-select: none;
+  }
+  .cbtn {
+    flex: none; display: inline-flex; align-items: center; gap: 6px;
+    height: 32px; padding: 0 12px;
+    background: #fff; border: 1px solid #e3e8f1; border-radius: 99px;
+    color: #6f7b93; font-family: inherit; font-size: 10px; font-weight: 800; line-height: 1; letter-spacing: .1em;
+    cursor: pointer; transition: all .25s cubic-bezier(.2,.8,.2,1);
+  }
+  .cbtn svg { width: 13px; height: 13px; stroke-width: 2.4; }
+  .hl { color: var(--ac); font-weight: 700; }
+  .cbtn .ck { display: none; }
+  .cbtn:hover { background: var(--ac); border-color: var(--ac); color: #fff; }
+  .cbtn.done { background: #101a30; border-color: #101a30; color: #9fbcff; }
+  .cbtn.done .cp { display: none; }
+  .cbtn.done .ck { display: block; }
+
+  @media (max-width: 480px) {
+    .hd { padding: 10px 14px; }
+    .bd { padding: 14px; gap: 8px; }
+    .tx { font-size: 12.5px; }
+    .cbtn { height: 28px; padding: 0 9px; font-size: 8.5px; }
+    .cbtn svg { width: 12px; height: 12px; }
+    .status { display: none; }
+  }
+
+  /* =========================================================
+     링크 만들기 (주소 뒤 #이 비어 있을 때)
+     ========================================================= */
+  html.makermode body { background: #f5f7fb; color: #101a30; padding: 28px 16px 60px; }
+  .mk { max-width: 760px; margin: 0 auto; }
+  .mk h1 { font-size: 22px; font-weight: 800; letter-spacing: -.04em; margin: 0 0 4px; }
+  .mk .sub { color: #6f7b93; font-size: 12.5px; margin: 0 0 22px; }
+  .card { background: #fff; border: 1px solid #e3e8f1; border-radius: 14px; padding: 18px; margin-bottom: 14px; }
+  .card h2 { font-size: 11px; font-weight: 800; letter-spacing: .16em; color: #6f7b93; margin: 0 0 12px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .row label { flex: 1; min-width: 130px; display: flex; flex-direction: column; gap: 5px; font-size: 11px; font-weight: 700; color: #2a3550; }
+  .row label.narrow { flex: none; min-width: 0; }
+  input[type=text], input[type=number], textarea {
+    font: 13px/1.5 inherit; letter-spacing: -.01em; color: #101a30;
+    border: 1px solid #e3e8f1; border-radius: 9px; background: #f8f9fc;
+    padding: 9px 11px; box-sizing: border-box; width: 100%; outline: none;
+  }
+  input:focus, textarea:focus { border-color: #b9c9f8; background: #fff; }
+  input[type=color] { width: 44px; height: 38px; padding: 2px; border: 1px solid #e3e8f1; border-radius: 9px; background: #fff; }
+  textarea#mx { min-height: 180px; resize: vertical; font-size: 12.5px; }
+  .hint { font-size: 11px; color: #6f7b93; margin: 6px 0 0; line-height: 1.6; }
+  .hint code { background: #eef1f7; padding: 1px 5px; border-radius: 4px; }
+  .seg { display: inline-flex; border: 1px solid #e3e8f1; border-radius: 99px; overflow: hidden; }
+  .seg button { all: unset; cursor: pointer; padding: 6px 14px; font-size: 11px; font-weight: 700; color: #6f7b93; }
+  .seg button.on { background: #101a30; color: #fff; }
+  .pvwrap { margin-top: 12px; background: repeating-linear-gradient(45deg, #f3f5fa 0 8px, #eef1f7 8px 16px); border-radius: 10px; padding: 14px; overflow: auto; }
+  #pv { display: block; border: 0; margin: 0 auto; background: #fff; border-radius: 4px; }
+  #meas { position: absolute; left: -9999px; top: 0; width: 360px; height: 40px; border: 0; visibility: hidden; }
+  #out { min-height: 110px; font: 11.5px/1.5 ui-monospace, Menlo, monospace; }
+  .bigbtn {
+    all: unset; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    height: 40px; padding: 0 22px; margin-top: 10px;
+    background: #2f5bea; color: #fff; border-radius: 99px; font-size: 12.5px; font-weight: 800;
+  }
+  .bigbtn.done { background: #101a30; }
+  .warn { background: #fff4e5; color: #8a5300; border: 1px solid #ffd9a6; border-radius: 10px; padding: 10px 14px; font-size: 12px; margin-bottom: 14px; }
+  .chk { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: #2a3550; }
+</style>
+</head>
+<body>
+
+<!-- ================= 복사 박스 ================= -->
+<div class="pv-hotel-box" id="box" hidden>
+  <div class="hd" id="hd">
+    <div class="hd-l"><span class="badge" id="bb"></span><span class="title" id="bt"></span></div>
+    <div class="status" id="bs"></div>
+  </div>
+  <div class="bd">
+    <div class="tx" id="tx"></div>
+    <button type="button" class="cbtn" id="cbtn" title="복사" aria-label="복사">
+      <span class="lab">COPY</span>
+      <svg class="cp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      <svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ================= 링크 만들기 ================= -->
+<div class="mk" id="maker" hidden>
+  <h1>PpLENIVERSE Copy Box</h1>
+  <p class="sub">플빌라용 카피박스 메이커..</p>
+
+  <div class="warn" id="warn" hidden>지금은 연이 단말기에서 연 로컬 파일이야. 깃허브에 올린 주소에서 이 페이지를 열어야 맞는 링크가 만들어져.</div>
+
+  <div class="card">
+    <h2>머리글</h2>
+    <div class="row">
+      <label class="narrow" style="width:110px">배지 <input type="text" id="mb" placeholder="OOC:"></label>
+      <label>제목 <input type="text" id="mt" placeholder="PpLENIVERSE"></label>
+      <label>오른쪽 표시 <input type="text" id="ms" placeholder="FRONT DESK"></label>
+      <label class="narrow">포인트색 <input type="color" id="ma" value="#2f5bea"></label>
+    </div>
+    <p class="hint">연아! 세 칸을 모두 비우면 머리글 줄 없이 본문만 나와. 이 값들은 브라우저에 기억될 거야.</p>
+  </div>
+
+  <div class="card">
+    <h2>프롬프트</h2>
+    <textarea id="mx" placeholder="내용 입력 ...
+
+## [ 복사X 내용 ]
+추가 내용 입력 ..."></textarea>
+    <p class="hint"><code>## </code>로 시작하는 줄은 라벨로만 보이고 복사에서는 빠져. 줄바꿈은 그대로 유지돼.<br>
+      <code>==글자==</code> 는 포인트색으로 강조돼. 다른 색은 <code>==#ff5577:글자==</code> 처럼 써. 복사할 때는 <code>==</code> 표시만 빠지고 글자는 그대로 들어가.</p>
+  </div>
+
+  <div class="card">
+    <h2>미리보기</h2>
+    <div class="row" style="align-items:center;margin:0">
+      <div class="seg" id="pvw"><button type="button" data-w="pc" class="on">PC</button><button type="button" data-w="m">폰 360</button></div>
+      <label class="narrow" style="flex-direction:row;align-items:center;gap:8px">높이 <input type="number" id="mh" min="60" max="2000" style="width:90px"> px</label>
+      <span class="chk"><input type="checkbox" id="mauto" checked> 내용에 맞춰 자동</span>
+    </div>
+    <div class="pvwrap"><iframe id="pv" title="미리보기" allow="clipboard-write"></iframe></div>
+    <p class="hint">자동 높이는 폰 폭(360px) 기준이야. PC에서는 박스 아래쪽 여백이 조금 넓어져.</p>
+  </div>
+
+  <div class="card">
+    <h2>러브로그에 붙일 코드</h2>
+    <textarea id="out" readonly></textarea>
+    <button type="button" class="bigbtn" id="ocopy">코드 복사</button>
+    <p class="hint">글쓰기 칸에 그대로 붙여넣으면 돼. <code>[html]</code> 줄과 <code>[/html]</code> 줄은 꼭 각자 한 줄을 차지해야 해.</p>
+  </div>
+
+  <iframe id="meas" aria-hidden="true" tabindex="-1"></iframe>
+</div>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const TAG = /^\s*##\s+(.*)$/;
+  const read = () => {
+    const p = new URLSearchParams(location.hash.slice(1));
+    return { b: p.get("b") || "", t: p.get("t") || "", s: p.get("s") || "", a: p.get("a") || "", x: p.get("x") || "" };
+  };
+  // ==글자== → 포인트색 강조 · ==#ff5577:글자== → 그 색으로 (복사할 땐 == 표시만 빠지고 글자는 그대로)
+  const HL = /==(?:(#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?):)?(.+?)==/g;
+  const copyText = x => x.replace(/\r/g, "").split("\n").filter(l => !TAG.test(l)).join("\n").replace(HL, "$2").replace(/\n{3,}/g, "\n\n").trim();
+  const appendHL = (el, line) => {
+    let last = 0, m;
+    HL.lastIndex = 0;
+    while ((m = HL.exec(line))) {
+      if (m.index > last) el.append(line.slice(last, m.index));
+      const s = document.createElement("span");
+      s.className = "hl";
+      if (m[1]) s.style.color = m[1];
+      s.textContent = m[2];
+      el.append(s);
+      last = HL.lastIndex;
+    }
+    if (last < line.length) el.append(line.slice(last));
+  };
+
+  async function writeClip(text) {
+    try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.cssText = "position:fixed;left:-9999px;top:0";
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) {}
+    ta.remove();
+    return ok;
+  }
+
+  /* ---------- 복사 박스 ---------- */
+  function drawBox() {
+    const o = read();
+    const box = $("#box");
+    if (/^#?[0-9a-fA-F]{6}$/.test(o.a)) box.style.setProperty("--ac", "#" + o.a.replace("#", ""));
+    $("#bb").textContent = o.b; $("#bb").hidden = !o.b;
+    $("#bt").textContent = o.t; $("#bt").hidden = !o.t;
+    $("#bs").textContent = o.s; $("#bs").hidden = !o.s;
+    $("#hd").hidden = !o.b && !o.t && !o.s;
+    const tx = $("#tx");
+    tx.textContent = "";
+    o.x.replace(/\r/g, "").split("\n").forEach((l, i) => {
+      if (i) tx.append("\n");
+      const m = l.match(TAG);
+      if (m) {
+        const s = document.createElement("span");
+        s.className = "tag";
+        s.textContent = m[1];
+        tx.append(s);
+      } else appendHL(tx, l);
+    });
+    box.dataset.copy = copyText(o.x);
+  }
+  $("#cbtn").onclick = async () => {
+    const b = $("#cbtn"), ok = await writeClip($("#box").dataset.copy || "");
+    b.classList.toggle("done", ok);
+    b.querySelector(".lab").textContent = ok ? "DONE" : "FAIL";
+    clearTimeout(b._t);
+    b._t = setTimeout(() => { b.classList.remove("done"); b.querySelector(".lab").textContent = "COPY"; }, 1500);
+  };
+
+  /* ---------- 링크 만들기 ---------- */
+  function initMaker() {
+    const base = location.href.split("#")[0];
+    if (!/^https:/.test(location.protocol)) $("#warn").hidden = false;
+    const LS = "copybox-maker";
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem(LS) || "{}"); } catch (e) {}
+    $("#mb").value = saved.b ?? "OOC:";
+    $("#mt").value = saved.t ?? "PpLENIVERSE";
+    $("#ms").value = saved.s ?? "FRONT DESK";
+    $("#ma").value = saved.a || "#2f5bea";
+    $("#mh").value = 200;
+    let pvMode = "pc", tm = 0;
+
+    const hashOf = () => {
+      const p = new URLSearchParams();
+      const put = (k, v) => { if (v) p.set(k, v); };
+      put("b", $("#mb").value.trim());
+      put("t", $("#mt").value.trim());
+      put("s", $("#ms").value.trim());
+      const a = $("#ma").value.replace("#", "").toLowerCase();
+      if (a !== "2f5bea") p.set("a", a);
+      p.set("x", $("#mx").value.replace(/\r/g, "").replace(/\s+$/, ""));
+      // URLSearchParams는 공백을 +로 바꿔요 — 읽을 때 다시 공백이 되니 그대로 둬도 되지만, 보기 좋게 %20으로
+      return p.toString().replace(/\+/g, "%20");
+    };
+
+    const measure = () => {
+      if (!$("#mauto").checked) return;
+      try {
+        const d = $("#meas").contentDocument;
+        const box = d && d.getElementById("box");
+        if (!box || box.hidden) return;
+        const h = Math.ceil(box.getBoundingClientRect().height) + 14;
+        if (h > 40) { $("#mh").value = h; paint(); }
+      } catch (e) {}
+    };
+
+    const paint = () => {
+      const h = Math.max(60, +$("#mh").value || 200);
+      const pv = $("#pv");
+      pv.style.width = pvMode === "m" ? "360px" : "100%";
+      pv.style.height = h + "px";
+      const src = base + "#" + hashOf();
+      $("#out").value = "[html]\n" +
+        '<iframe src="' + src.replace(/&/g, "&amp;").replace(/"/g, "%22") + '" allow="clipboard-write" loading="lazy" style="display:block;width:100%;height:' + h + 'px;border:0;background:transparent"></iframe>' +
+        "\n[/html]";
+    };
+
+    const update = () => {
+      try {
+        localStorage.setItem(LS, JSON.stringify({ b: $("#mb").value, t: $("#mt").value, s: $("#ms").value, a: $("#ma").value }));
+      } catch (e) {}
+      const src = base + "#" + hashOf();
+      $("#pv").src = src;
+      $("#meas").src = src;
+      paint();
+      setTimeout(measure, 250);
+      setTimeout(measure, 900);
+    };
+
+    [ "#mb", "#mt", "#ms", "#ma", "#mx" ].forEach(s => $(s).addEventListener("input", () => { clearTimeout(tm); tm = setTimeout(update, 250); }));
+    $("#mh").addEventListener("input", () => { $("#mauto").checked = false; paint(); });
+    $("#mauto").addEventListener("change", () => { if ($("#mauto").checked) measure(); });
+    $("#meas").addEventListener("load", () => setTimeout(measure, 100));
+    $("#pvw").querySelectorAll("button").forEach(b => b.onclick = () => {
+      pvMode = b.dataset.w;
+      $("#pvw").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+      paint();
+    });
+    $("#ocopy").onclick = async () => {
+      const ok = await writeClip($("#out").value);
+      const b = $("#ocopy");
+      b.textContent = ok ? "복사했어요 ✓" : "복사 실패 — 직접 선택해 주세요";
+      b.classList.toggle("done", ok);
+      setTimeout(() => { b.textContent = "코드 복사"; b.classList.remove("done"); }, 1600);
+    };
+    update();
+  }
+
+  /* ---------- 시작 ---------- */
+  function start() {
+    // 다른 페이지 안(iframe)에 들어가 있으면 내용이 비어 있어도 항상 박스로
+    let framed = true;
+    try { framed = window.self !== window.top; } catch (e) {}
+    const hasBox = !!read().x || framed;
+    document.documentElement.classList.toggle("boxmode", hasBox);
+    document.documentElement.classList.toggle("makermode", !hasBox);
+    $("#box").hidden = !hasBox;
+    $("#maker").hidden = hasBox;
+    if (hasBox) drawBox(); else if (!start.made) { start.made = true; initMaker(); }
+  }
+  window.addEventListener("hashchange", start);
+  start();
+})();
+</script>
+</body>
